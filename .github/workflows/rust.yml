@@ -2,11 +2,9 @@ name: Rust
 
 on:
   push:
-    branches: ["master"]
-    
-
-env:
-  CARGO_TERM_COLOR: always
+    branches:
+      - "master"
+  pull_request:
 
 jobs:
   clippy:
