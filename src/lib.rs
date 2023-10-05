@@ -101,7 +101,7 @@ use syn::{parse::Parse, parse_macro_input, Attribute, Path, Token};
 /// }
 /// ```
 pub fn adtest(attr: TokenStream, input: TokenStream) -> TokenStream {
-    derive_test_function(attr.into(), input).into()
+    derive_test_function(attr, input)
 }
 
 fn derive_test_function(attr: TokenStream, input: TokenStream) -> TokenStream {

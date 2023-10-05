@@ -1,4 +1,4 @@
 /target
 /wip
 *.profraw
-coverage.json
+/coverage*
