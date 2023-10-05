@@ -2,12 +2,12 @@
 //!  
 //! This crate allows you to easily create tests with setup and cleanup functions, like `beforeEach` and `afterEach` functions in jest,
 //! it offers this functionality for both async and non-async test.
-//! 
+//!
 //! To use simply add to your crate in `lib.rs` or `main.rs`
 //! ```rust
 //! #[macro_use] extern crate adtest;
 //! ```
-//! 
+//!
 //! After that add `#[adtest]` to desired function
 //! ```rust
 //! #[adtest]
@@ -15,22 +15,22 @@
 //!     println!("I like to test things");
 //! }
 //! ```
-//! 
+//!
 //! If used solely it behaves as `#[test]` on non async function and on async functions as `#[tokio::test]`.
 //! But unlike those, `#[adtest]` allows you to add setup and clean up functions to run before/after your tests.
-//! 
+//!
 //! Example of test with setup
 //! ```rust
 //! #[adtest(setup = setup_function)]
 //! fn complex_test(){
 //!     println!("I like to test things");
 //! }
-//! 
+//!
 //! fn setup_function(){
 //!     println!("I will do some setup things");
 //! }
 //! ```
-//! 
+//!
 //! If your setup/cleanup function is async you must specify it with `async` keyword before test name:
 //! ```rust
 //! #[adtest(
@@ -40,11 +40,11 @@
 //! fn complex_test(){
 //!     println!("I like to test things");
 //! }
-//! 
+//!
 //! fn setup_function(){
 //!     println!("I will do some setup things");
 //! }
-//! 
+//!
 //! async fn cleanup_function(){
 //!     println!("I am async function")
 //! }
@@ -164,19 +164,17 @@ fn derive_test_function(attr: TokenStream, input: TokenStream) -> TokenStream {
     .into()
 }
 
-#[derive(Debug)]
 struct InnerFunction {
     name: Path,
     is_async: bool,
 }
 
-#[derive(Debug)]
 enum Function {
     Setup(InnerFunction),
     Cleanup(InnerFunction),
 }
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 struct AdvanceTestAttrs {
     cleanup: Option<InnerFunction>,
     setup: Option<InnerFunction>,
@@ -221,7 +219,7 @@ impl Parse for Function {
         match func.to_string().as_str() {
             "setup" => Ok(Self::Setup(item)),
             "cleanup" => Ok(Self::Cleanup(item)),
-            _ => panic!("fuck me"),
+            _ => unreachable!(),
         }
     }
 }
@@ -230,23 +228,18 @@ impl Parse for AdvanceTestAttrs {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let mut attr = Self::default();
 
-        while let Ok(enum_function) = input.parse::<Function>() {
+        while !input.is_empty() {
+            let enum_function = input.parse::<Function>()?;
             match enum_function {
                 Function::Setup(function) => {
                     if attr.setup.is_some() {
-                        return Err(syn::Error::new(
-                            input.span(),
-                            "Setup already defined",
-                        ));
+                        return Err(syn::Error::new(input.span(), "Setup already defined"));
                     }
                     attr.setup = Some(function);
                 }
                 Function::Cleanup(function) => {
-                    if attr.setup.is_some() {
-                        return Err(syn::Error::new(
-                            input.span(),
-                            "Cleanup already defined",
-                        ));
+                    if attr.cleanup.is_some() {
+                        return Err(syn::Error::new(input.span(), "Cleanup already defined"));
                     }
                     attr.cleanup = Some(function)
                 }
