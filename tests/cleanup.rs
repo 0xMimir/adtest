@@ -14,7 +14,6 @@ fn cleanup_function(){
 #[adtest(
     cleanup = cleanup_function
 )]
-#[cleanup(async_cleanup_function)]
 async fn async_test_with_cleanup(){
     println!("Do something")
 }

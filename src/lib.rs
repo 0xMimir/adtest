@@ -10,7 +10,7 @@
 //!
 //! After that add `#[adtest]` to desired function
 //! ```rust
-//! #[adtest]
+//! #[adtest::adtest]
 //! fn complex_test(){
 //!     println!("I like to test things");
 //! }
@@ -21,7 +21,7 @@
 //!
 //! Example of test with setup
 //! ```rust
-//! #[adtest(setup = setup_function)]
+//! #[adtest::adtest(setup = setup_function)]
 //! fn complex_test(){
 //!     println!("I like to test things");
 //! }
@@ -33,7 +33,7 @@
 //!
 //! If your setup/cleanup function is async you must specify it with `async` keyword before test name:
 //! ```rust
-//! #[adtest(
+//! #[adtest::adtest(
 //!     setup = setup_function,
 //!     cleanup = async cleanup_function
 //! )]
@@ -108,6 +108,11 @@ fn derive_test_function(attr: TokenStream, input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as syn::ItemFn);
     let function_name = input.sig.ident;
     let body = input.block;
+    let test_attributes = input.attrs;
+
+    let test_attributes = quote!(
+        #(#test_attributes)*
+    );
 
     let is_async = input.sig.asyncness.is_some();
     let attrs = parse_macro_input!(attr as AdvanceTestAttrs);
@@ -149,6 +154,7 @@ fn derive_test_function(attr: TokenStream, input: TokenStream) -> TokenStream {
 
     quote! {
         #derive_code
+        #test_attributes
         #async_sig fn #function_name(){
             #setup_fn;
 
