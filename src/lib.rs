@@ -121,7 +121,7 @@ fn derive_test_function(attr: TokenStream, input: TokenStream) -> TokenStream {
     let setup_fn = attrs
         .setup
         .map(InnerFunction::generate_call_function)
-        .unwrap_or_default();
+        .unwrap_or(quote!(()));
 
     let cleanup_fn = attrs
         .cleanup
@@ -156,7 +156,7 @@ fn derive_test_function(attr: TokenStream, input: TokenStream) -> TokenStream {
         #derive_code
         #test_attributes
         #async_sig fn #function_name(){
-            #setup_fn;
+            let _setup_ = #setup_fn;
 
             let test_result: #return_type = #spawn_code;
 
